@@ -1,193 +1,126 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
-/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Flux Finance Pro</title>
 
-<title>Flux Finance</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- FIREBASE -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* 🔥 TU CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyAD...",
+  authDomain: "gastos-b526f.firebaseapp.com",
+  projectId: "gastos-b526f",
+  storageBucket: "gastos-b526f.firebasestorage.app",
+  messagingSenderId: "181887892967",
+  appId: "1:181887892967:web:6487fa2dbbfd4c9317d142"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* =========================
+   OFFLINE QUEUE SYSTEM
+========================= */
+
+let queue = JSON.parse(localStorage.getItem("queue")) || [];
+
+/* guardar en firebase */
+async function pushToCloud(tx){
+  try {
+    await addDoc(collection(db,"transactions"), tx);
+  } catch(e){
+    console.log("offline → queued");
+    queue.push(tx);
+    localStorage.setItem("queue", JSON.stringify(queue));
+  }
+}
+
+/* sync pendiente */
+async function syncQueue(){
+  if(!navigator.onLine) return;
+
+  const copy = [...queue];
+  queue = [];
+
+  for(const tx of copy){
+    try{
+      await addDoc(collection(db,"transactions"), tx);
+    }catch(e){
+      queue.push(tx);
+    }
+  }
+
+  localStorage.setItem("queue", JSON.stringify(queue));
+}
+
+/* realtime sync */
+function listenCloud(setData){
+  onSnapshot(collection(db,"transactions"), (snap)=>{
+
+    const data = snap.docs.map(d=>d.data());
+    setData(data);
+
+  });
+}
+
+window.firebaseSync = {
+  pushToCloud,
+  syncQueue,
+  listenCloud
+};
+
+</script>
 
 <style>
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
-
 body{
-  background:#0d0f14;
+  margin:0;
+  font-family:-apple-system;
+  background:#0b0f17;
   color:white;
-  min-height:100vh;
 }
 
 .app{
-  padding:24px;
-  max-width:700px;
+  max-width:720px;
   margin:auto;
-}
-
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:24px;
-}
-
-.topbar h1{
-  font-size:32px;
-  font-weight:700;
-}
-
-.topbar button{
-  width:56px;
-  height:56px;
-  border:none;
-  border-radius:50%;
-  background:#6C63FF;
-  color:white;
-  font-size:28px;
-  cursor:pointer;
-}
-
-.balance-card{
-  background:linear-gradient(
-    135deg,
-    #6C63FF,
-    #8A84FF
-  );
-
-  padding:32px;
-  border-radius:28px;
-  margin-bottom:24px;
-
-  box-shadow:
-    0 20px 40px rgba(108,99,255,.25);
-}
-
-.balance-card p{
-  opacity:.8;
-}
-
-.balance-card h2{
-  font-size:48px;
-  margin-top:12px;
-}
-
-.stats-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-  margin-bottom:24px;
+  padding:20px;
 }
 
 .card{
-  background:rgba(255,255,255,.05);
-  backdrop-filter:blur(20px);
-  padding:20px;
-  border-radius:24px;
-}
-
-.card p{
-  opacity:.7;
-  margin-bottom:8px;
-}
-
-.card h3{
-  font-size:28px;
-}
-
-.transactions{
-  margin-top:16px;
-}
-
-.transactions h2{
-  margin-bottom:16px;
-}
-
-.transaction{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-
-  background:rgba(255,255,255,.04);
-
-  padding:18px;
-  border-radius:20px;
-
+  background:rgba(255,255,255,.06);
+  padding:16px;
+  border-radius:18px;
   margin-bottom:12px;
 }
 
-.transaction.expense{
-  border-left:5px solid #ff4d4f;
-}
-
-.transaction.income{
-  border-left:5px solid #22c55e;
-}
-
-.transaction small{
-  opacity:.6;
-}
-
-dialog{
+button{
+  padding:12px;
   border:none;
-  border-radius:28px;
-  padding:24px;
-  width:90%;
-  max-width:420px;
-  background:#161922;
+  border-radius:12px;
+  background:#7c5cff;
   color:white;
 }
 
-dialog::backdrop{
-  background:rgba(0,0,0,.6);
-}
-
-form{
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-}
-
-input,
-textarea,
-select{
-  background:#1d2330;
+input{
+  width:100%;
+  padding:12px;
+  margin:6px 0;
+  border-radius:12px;
   border:none;
-  padding:16px;
-  border-radius:16px;
-  color:white;
-  font-size:16px;
-}
-
-button[type="submit"]{
-  background:#6C63FF;
-  border:none;
-  padding:18px;
-  border-radius:18px;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-.actions{
-  display:flex;
-  gap:12px;
-}
-
-.secondary{
-  background:#2b3242 !important;
-}
-
-canvas{
-  margin-top:20px;
-  background:rgba(255,255,255,.04);
-  border-radius:24px;
-  padding:16px;
 }
 
 </style>
@@ -197,372 +130,82 @@ canvas{
 
 <div class="app">
 
-  <header class="topbar">
+<h2>Flux Finance 🔥</h2>
 
-    <h1>Flux</h1>
+<input id="title" placeholder="Título"/>
+<input id="amount" type="number" placeholder="Monto"/>
 
-    <button id="addBtn">+</button>
+<button onclick="save()">Guardar</button>
 
-  </header>
-
-  <section class="balance-card">
-
-    <p>Balance Total</p>
-
-    <h2 id="balance">$0</h2>
-
-  </section>
-
-  <section class="stats-grid">
-
-    <div class="card">
-
-      <p>Ingresos</p>
-
-      <h3 id="income">$0</h3>
-
-    </div>
-
-    <div class="card">
-
-      <p>Gastos</p>
-
-      <h3 id="expenses">$0</h3>
-
-    </div>
-
-  </section>
-
-  <section class="card">
-
-    <p>Distribución</p>
-
-    <canvas id="chart" height="180"></canvas>
-
-  </section>
-
-  <section class="transactions">
-
-    <h2>Movimientos</h2>
-
-    <div id="transactionsList"></div>
-
-  </section>
+<h3>Movimientos</h3>
+<div id="list"></div>
 
 </div>
 
-<dialog id="expenseModal">
-
-  <form id="expenseForm">
-
-    <h2>Nuevo Movimiento</h2>
-
-    <input
-      type="text"
-      id="title"
-      placeholder="Título"
-      required
-    />
-
-    <input
-      type="number"
-      id="amount"
-      placeholder="Monto"
-      required
-    />
-
-    <select id="type">
-      <option value="expense">Gasto</option>
-      <option value="income">Ingreso</option>
-    </select>
-
-    <select id="currency">
-      <option>COP</option>
-      <option>USD</option>
-      <option>EUR</option>
-    </select>
-
-    <textarea
-      id="notes"
-      placeholder="Notas"
-    ></textarea>
-
-    <div class="actions">
-
-      <button type="submit">
-        Guardar
-      </button>
-
-      <button
-        type="button"
-        class="secondary"
-        id="cancelBtn"
-      >
-        Cancelar
-      </button>
-
-    </div>
-
-  </form>
-
-</dialog>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 
-const addBtn =
-  document.getElementById('addBtn');
+let data = JSON.parse(localStorage.getItem("data")) || [];
 
-const modal =
-  document.getElementById('expenseModal');
+function save(){
 
-const form =
-  document.getElementById('expenseForm');
-
-const cancelBtn =
-  document.getElementById('cancelBtn');
-
-const transactionsList =
-  document.getElementById('transactionsList');
-
-const balanceEl =
-  document.getElementById('balance');
-
-const incomeEl =
-  document.getElementById('income');
-
-const expensesEl =
-  document.getElementById('expenses');
-
-const chartCanvas =
-  document.getElementById('chart');
-
-let chart;
-
-let transactions =
-  JSON.parse(
-    localStorage.getItem('flux-transactions')
-  ) || [];
-
-addBtn.onclick = () => {
-  modal.showModal();
-};
-
-cancelBtn.onclick = () => {
-  modal.close();
-};
-
-form.onsubmit = (e) => {
-
-  e.preventDefault();
-
-  const transaction = {
-
+  const tx = {
     id: crypto.randomUUID(),
-
-    title:
-      document.getElementById('title').value,
-
-    amount: parseFloat(
-      document.getElementById('amount').value
-    ),
-
-    type:
-      document.getElementById('type').value,
-
-    currency:
-      document.getElementById('currency').value,
-
-    notes:
-      document.getElementById('notes').value,
-
-    createdAt: Date.now()
+    title: title.value,
+    amount: Number(amount.value),
+    date: Date.now()
   };
 
-  transactions.unshift(transaction);
+  // 1. LOCAL FIRST
+  data.unshift(tx);
+  localStorage.setItem("data", JSON.stringify(data));
 
-  saveTransactions();
+  render();
 
-  renderTransactions();
-
-  form.reset();
-
-  modal.close();
-};
-
-function saveTransactions(){
-
-  localStorage.setItem(
-    'flux-transactions',
-    JSON.stringify(transactions)
-  );
+  // 2. CLOUD SYNC
+  if(window.firebaseSync){
+    firebaseSync.pushToCloud(tx);
+  }
 }
 
-function renderTransactions(){
+function render(){
 
-  transactionsList.innerHTML = '';
+  list.innerHTML = "";
 
-  let income = 0;
-  let expenses = 0;
+  data.forEach(t=>{
 
-  transactions.forEach(tx => {
-
-    if(tx.type === 'income'){
-      income += tx.amount;
-    }else{
-      expenses += tx.amount;
-    }
-
-    const div =
-      document.createElement('div');
-
-    div.className =
-      `transaction ${tx.type}`;
+    const div = document.createElement("div");
+    div.className = "card";
 
     div.innerHTML = `
-
-      <div>
-
-        <strong>${tx.title}</strong>
-
-        <br>
-
-        <small>
-          ${tx.currency}
-        </small>
-
-      </div>
-
-      <div>
-
-        <h3>
-
-          ${tx.type === 'expense' ? '-' : '+'}
-          $${tx.amount.toLocaleString()}
-
-        </h3>
-
-      </div>
+      <b>${t.title}</b><br>
+      $${t.amount}
     `;
 
-    transactionsList.appendChild(div);
+    list.appendChild(div);
+
   });
 
-  balanceEl.innerText =
-    '$' + (income - expenses).toLocaleString();
-
-  incomeEl.innerText =
-    '$' + income.toLocaleString();
-
-  expensesEl.innerText =
-    '$' + expenses.toLocaleString();
-
-  renderChart(income, expenses);
 }
 
-function renderChart(income, expenses){
+/* INIT */
+render();
 
-  if(chart){
-    chart.destroy();
-  }
+/* FIREBASE REALTIME SYNC */
+if(window.firebaseSync){
 
-  chart = new Chart(chartCanvas, {
+  firebaseSync.listenCloud((cloudData)=>{
 
-    type:'doughnut',
+    data = cloudData;
+    localStorage.setItem("data", JSON.stringify(data));
+    render();
 
-    data:{
-
-      labels:[
-        'Ingresos',
-        'Gastos'
-      ],
-
-      datasets:[{
-
-        data:[
-          income,
-          expenses
-        ],
-
-        backgroundColor:[
-          '#22c55e',
-          '#ff4d4f'
-        ],
-
-        borderWidth:0
-      }]
-    },
-
-    options:{
-
-      plugins:{
-        legend:{
-          labels:{
-            color:'white'
-          }
-        }
-      }
-    }
   });
+
+  window.addEventListener("online", ()=>{
+    firebaseSync.syncQueue();
+  });
+
 }
-
-async function authenticate(){
-
-  if(
-    !window.PublicKeyCredential
-  ){
-    return true;
-  }
-
-  try{
-
-    const challenge =
-      crypto.getRandomValues(
-        new Uint8Array(32)
-      );
-
-    await navigator.credentials.get({
-      publicKey:{
-        challenge,
-        timeout:60000,
-        userVerification:'required'
-      }
-    });
-
-    return true;
-
-  }catch(e){
-
-    return confirm(
-      'Autenticación biométrica falló. Continuar?'
-    );
-  }
-}
-
-async function init(){
-
-  const ok =
-    await authenticate();
-
-  if(!ok){
-
-    document.body.innerHTML = `
-      <h1 style="
-        padding:40px;
-        text-align:center;
-      ">
-        Acceso denegado
-      </h1>
-    `;
-
-    return;
-  }
-
-  renderTransactions();
-}
-
-init();
 
 </script>
 
