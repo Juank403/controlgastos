@@ -7,7 +7,292 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- FIREBASE -->
+<style>
+
+/* =========================
+   FLUX DESIGN SYSTEM
+========================= */
+
+:root{
+  --bg1:#070A12;
+  --bg2:#0B1020;
+  --card:rgba(255,255,255,.06);
+  --stroke:rgba(255,255,255,.08);
+  --accent:#7C5CFF;
+  --accent2:#9B8CFF;
+  --green:#2EE59D;
+  --red:#FF4D4F;
+  --text:#FFFFFF;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+
+body{
+  background: radial-gradient(circle at top,#1a1f3a,#070A12);
+  color:var(--text);
+  min-height:100vh;
+}
+
+/* =========================
+   APP CONTAINER
+========================= */
+
+.app{
+  max-width:780px;
+  margin:auto;
+  padding:24px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.title{
+  font-size:34px;
+  font-weight:800;
+  letter-spacing:-1px;
+}
+
+.subtitle{
+  font-size:12px;
+  opacity:.6;
+}
+
+.addBtn{
+  width:54px;
+  height:54px;
+  border-radius:18px;
+  border:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:white;
+  font-size:26px;
+  cursor:pointer;
+  box-shadow:0 20px 40px rgba(124,92,255,.25);
+  transition:.2s;
+}
+
+.addBtn:hover{
+  transform:scale(1.05);
+}
+
+/* =========================
+   BALANCE CARD
+========================= */
+
+.balance{
+  background:linear-gradient(135deg,#7C5CFF,#4B7BFF);
+  padding:28px;
+  border-radius:28px;
+  box-shadow:0 30px 80px rgba(124,92,255,.25);
+  margin-bottom:18px;
+  position:relative;
+  overflow:hidden;
+}
+
+.balance::before{
+  content:"";
+  position:absolute;
+  top:-50%;
+  right:-30%;
+  width:200px;
+  height:200px;
+  background:rgba(255,255,255,.15);
+  border-radius:50%;
+  filter:blur(40px);
+}
+
+.balance p{
+  opacity:.8;
+}
+
+.balance h2{
+  font-size:44px;
+  margin-top:10px;
+}
+
+/* =========================
+   STATS
+========================= */
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--stroke);
+  padding:18px;
+  border-radius:22px;
+  backdrop-filter:blur(20px);
+}
+
+.card p{
+  opacity:.7;
+  font-size:13px;
+}
+
+.card h3{
+  font-size:24px;
+  margin-top:6px;
+}
+
+/* =========================
+   TRANSACTIONS
+========================= */
+
+.sectionTitle{
+  margin:20px 0 12px;
+  font-size:16px;
+  opacity:.8;
+}
+
+.tx{
+  display:flex;
+  justify-content:space-between;
+  padding:16px;
+  margin-bottom:10px;
+  border-radius:18px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);
+  transition:.2s;
+}
+
+.tx:hover{
+  transform:translateY(-2px);
+}
+
+.tx.expense{
+  border-left:4px solid var(--red);
+}
+
+.tx.income{
+  border-left:4px solid var(--green);
+}
+
+/* =========================
+   MODAL
+========================= */
+
+dialog{
+  border:none;
+  border-radius:26px;
+  padding:20px;
+  width:92%;
+  max-width:420px;
+  background:#111827;
+  color:white;
+}
+
+dialog::backdrop{
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(4px);
+}
+
+input,select{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  background:#1F2937;
+  color:white;
+  margin-top:10px;
+}
+
+.save{
+  width:100%;
+  margin-top:14px;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:white;
+  font-weight:600;
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+.tx{
+  animation:fade .25s ease;
+}
+
+@keyframes fade{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <div>
+      <div class="title">Flux</div>
+      <div class="subtitle">Realtime Finance Sync</div>
+    </div>
+
+    <button class="addBtn" onclick="openModal()">+</button>
+  </div>
+
+  <div class="balance">
+    <p>Balance total</p>
+    <h2 id="balance">$0</h2>
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <p>Ingresos</p>
+      <h3 id="income">$0</h3>
+    </div>
+
+    <div class="card">
+      <p>Gastos</p>
+      <h3 id="expenses">$0</h3>
+    </div>
+
+  </div>
+
+  <h3 class="sectionTitle">Movimientos en tiempo real</h3>
+
+  <div id="list"></div>
+
+</div>
+
+<dialog id="modal">
+
+  <h3>Nuevo movimiento</h3>
+
+  <input id="title" placeholder="Título"/>
+  <input id="amount" type="number" placeholder="Monto"/>
+
+  <select id="type">
+    <option value="expense">Gasto</option>
+    <option value="income">Ingreso</option>
+  </select>
+
+  <button class="save" onclick="save()">Guardar</button>
+
+</dialog>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -15,13 +300,12 @@ import {
   getFirestore,
   collection,
   addDoc,
-  getDocs,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* 🔥 TU CONFIG */
+/* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
-  apiKey: "AIzaSyAD...",
+  apiKey: "AIzaSyAX2DYw3f5ASIfMT8SJ0F-FTHioHrZd-V4",
   authDomain: "gastos-b526f.firebaseapp.com",
   projectId: "gastos-b526f",
   storageBucket: "gastos-b526f.firebasestorage.app",
@@ -32,179 +316,67 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* =========================
-   OFFLINE QUEUE SYSTEM
-========================= */
+const col = collection(db,"transactions");
 
-let queue = JSON.parse(localStorage.getItem("queue")) || [];
+let data = [];
 
-/* guardar en firebase */
-async function pushToCloud(tx){
-  try {
-    await addDoc(collection(db,"transactions"), tx);
-  } catch(e){
-    console.log("offline → queued");
-    queue.push(tx);
-    localStorage.setItem("queue", JSON.stringify(queue));
-  }
-}
-
-/* sync pendiente */
-async function syncQueue(){
-  if(!navigator.onLine) return;
-
-  const copy = [...queue];
-  queue = [];
-
-  for(const tx of copy){
-    try{
-      await addDoc(collection(db,"transactions"), tx);
-    }catch(e){
-      queue.push(tx);
-    }
-  }
-
-  localStorage.setItem("queue", JSON.stringify(queue));
-}
-
-/* realtime sync */
-function listenCloud(setData){
-  onSnapshot(collection(db,"transactions"), (snap)=>{
-
-    const data = snap.docs.map(d=>d.data());
-    setData(data);
-
-  });
-}
-
-window.firebaseSync = {
-  pushToCloud,
-  syncQueue,
-  listenCloud
+window.openModal = () => {
+  modal.showModal();
 };
 
-</script>
-
-<style>
-
-body{
-  margin:0;
-  font-family:-apple-system;
-  background:#0b0f17;
-  color:white;
-}
-
-.app{
-  max-width:720px;
-  margin:auto;
-  padding:20px;
-}
-
-.card{
-  background:rgba(255,255,255,.06);
-  padding:16px;
-  border-radius:18px;
-  margin-bottom:12px;
-}
-
-button{
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:#7c5cff;
-  color:white;
-}
-
-input{
-  width:100%;
-  padding:12px;
-  margin:6px 0;
-  border-radius:12px;
-  border:none;
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="app">
-
-<h2>Flux Finance 🔥</h2>
-
-<input id="title" placeholder="Título"/>
-<input id="amount" type="number" placeholder="Monto"/>
-
-<button onclick="save()">Guardar</button>
-
-<h3>Movimientos</h3>
-<div id="list"></div>
-
-</div>
-
-<script>
-
-let data = JSON.parse(localStorage.getItem("data")) || [];
-
-function save(){
+window.save = async () => {
 
   const tx = {
-    id: crypto.randomUUID(),
-    title: title.value,
-    amount: Number(amount.value),
-    date: Date.now()
+    title:title.value,
+    amount:+amount.value,
+    type:type.value,
+    date:Date.now()
   };
 
-  // 1. LOCAL FIRST
-  data.unshift(tx);
-  localStorage.setItem("data", JSON.stringify(data));
+  await addDoc(col, tx);
+
+  modal.close();
+};
+
+/* 🔥 REALTIME MULTI DEVICE SYNC */
+onSnapshot(col,(snap)=>{
+
+  data = snap.docs.map(d=>d.data());
 
   render();
 
-  // 2. CLOUD SYNC
-  if(window.firebaseSync){
-    firebaseSync.pushToCloud(tx);
-  }
-}
+});
 
 function render(){
 
-  list.innerHTML = "";
+  let income=0,expense=0;
+
+  list.innerHTML="";
 
   data.forEach(t=>{
 
-    const div = document.createElement("div");
-    div.className = "card";
+    if(t.type==="income") income+=t.amount;
+    else expense+=t.amount;
 
-    div.innerHTML = `
-      <b>${t.title}</b><br>
-      $${t.amount}
+    const div=document.createElement("div");
+    div.className="tx "+t.type;
+
+    div.innerHTML=`
+      <div>
+        <b>${t.title}</b>
+      </div>
+      <div>
+        ${t.type==="expense"?"-":"+"}$${t.amount}
+      </div>
     `;
 
     list.appendChild(div);
 
   });
 
-}
-
-/* INIT */
-render();
-
-/* FIREBASE REALTIME SYNC */
-if(window.firebaseSync){
-
-  firebaseSync.listenCloud((cloudData)=>{
-
-    data = cloudData;
-    localStorage.setItem("data", JSON.stringify(data));
-    render();
-
-  });
-
-  window.addEventListener("online", ()=>{
-    firebaseSync.syncQueue();
-  });
-
+  balance.innerText="$"+(income-expense);
+  incomeEl.innerText="$"+income;
+  expensesEl.innerText="$"+expense;
 }
 
 </script>
