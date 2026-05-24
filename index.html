@@ -1,362 +1,570 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flux — iOS Native Offline-First Personal Finance Vault</title>
-    <style>
-        :root {
-            --bg-color: #0d0e12;
-            --card-bg: #161920;
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --accent: #3b82f6;
-            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            --border: rgba(255, 255, 255, 0.08);
-            --success: #10b981;
-            --error: #ef4444;
-        }
+<meta charset="UTF-8" />
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+/>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<title>Flux Finance</title>
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            padding: 2rem 1rem;
-        }
+<style>
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
 
-        header {
-            text-align: center;
-            padding: 4rem 0 3rem 0;
-            border-bottom: 1px solid var(--border);
-        }
+body{
+  background:#0d0f14;
+  color:white;
+  min-height:100vh;
+}
 
-        .badge {
-            background: var(--accent-gradient);
-            color: white;
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: inline-block;
-            margin-bottom: 1rem;
-            letter-spacing: 0.05em;
-        }
+.app{
+  padding:24px;
+  max-width:700px;
+  margin:auto;
+}
 
-        h1 {
-            font-size: 2.8rem;
-            font-weight: 800;
-            background: linear-gradient(to right, #ffffff, #9ca3af);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.02em;
-            margin-bottom: 1rem;
-        }
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:24px;
+}
 
-        p.subtitle {
-            color: var(--text-secondary);
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
+.topbar h1{
+  font-size:32px;
+  font-weight:700;
+}
 
-        section {
-            margin: 4rem 0;
-        }
+.topbar button{
+  width:56px;
+  height:56px;
+  border:none;
+  border-radius:50%;
+  background:#6C63FF;
+  color:white;
+  font-size:28px;
+  cursor:pointer;
+}
 
-        h2 {
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 0.5rem;
-        }
+.balance-card{
+  background:linear-gradient(
+    135deg,
+    #6C63FF,
+    #8A84FF
+  );
 
-        h2::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 40px;
-            height: 3px;
-            background: var(--accent);
-            border-radius: 2px;
-        }
+  padding:32px;
+  border-radius:28px;
+  margin-bottom:24px;
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
+  box-shadow:
+    0 20px 40px rgba(108,99,255,.25);
+}
 
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 1.8rem;
-            border-radius: 12px;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
+.balance-card p{
+  opacity:.8;
+}
 
-        .card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(59, 130, 246, 0.4);
-        }
+.balance-card h2{
+  font-size:48px;
+  margin-top:12px;
+}
 
-        .card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.75rem;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+.stats-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:24px;
+}
 
-        .card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
+.card{
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(20px);
+  padding:20px;
+  border-radius:24px;
+}
 
-        .highlight-box {
-            background: rgba(59, 130, 246, 0.05);
-            border-left: 4px solid var(--accent);
-            padding: 1.5rem;
-            border-radius: 0 12px 12px 0;
-            margin: 2rem 0;
-        }
+.card p{
+  opacity:.7;
+  margin-bottom:8px;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1.5rem;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
+.card h3{
+  font-size:28px;
+}
 
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
+.transactions{
+  margin-top:16px;
+}
 
-        th {
-            background-color: rgba(255, 255, 255, 0.02);
-            color: #fff;
-            font-weight: 600;
-        }
+.transactions h2{
+  margin-bottom:16px;
+}
 
-        td strong {
-            color: #fff;
-        }
+.transaction{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 
-        td {
-            color: var(--text-secondary);
-        }
+  background:rgba(255,255,255,.04);
 
-        /* Estilos del Sandbox de Pruebas */
-        .sandbox-panel {
-            background-color: #111319;
-            border: 1px dashed rgba(59, 130, 246, 0.3);
-            border-radius: 16px;
-            padding: 2.5rem;
-            text-align: center;
-            margin-top: 5rem;
-        }
+  padding:18px;
+  border-radius:20px;
 
-        .btn-primary {
-            background: var(--accent-gradient);
-            color: white;
-            border: none;
-            padding: 0.9rem 2.5rem;
-            font-size: 1rem;
-            font-weight: 700;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-            transition: transform 0.1s ease, opacity 0.2s ease;
-        }
+  margin-bottom:12px;
+}
 
-        .btn-primary:active {
-            transform: scale(0.98);
-        }
+.transaction.expense{
+  border-left:5px solid #ff4d4f;
+}
 
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
+.transaction.income{
+  border-left:5px solid #22c55e;
+}
 
-        #status-message {
-            margin-top: 1.5rem;
-            font-size: 0.95rem;
-            font-weight: 500;
-            min-height: 24px;
-        }
+.transaction small{
+  opacity:.6;
+}
 
-        footer {
-            text-align: center;
-            padding: 4rem 0 2rem 0;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--border);
-        }
-    </style>
+dialog{
+  border:none;
+  border-radius:28px;
+  padding:24px;
+  width:90%;
+  max-width:420px;
+  background:#161922;
+  color:white;
+}
+
+dialog::backdrop{
+  background:rgba(0,0,0,.6);
+}
+
+form{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+input,
+textarea,
+select{
+  background:#1d2330;
+  border:none;
+  padding:16px;
+  border-radius:16px;
+  color:white;
+  font-size:16px;
+}
+
+button[type="submit"]{
+  background:#6C63FF;
+  border:none;
+  padding:18px;
+  border-radius:18px;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.actions{
+  display:flex;
+  gap:12px;
+}
+
+.secondary{
+  background:#2b3242 !important;
+}
+
+canvas{
+  margin-top:20px;
+  background:rgba(255,255,255,.04);
+  border-radius:24px;
+  padding:16px;
+}
+
+</style>
 </head>
+
 <body>
 
-    <div class="container">
-        <!-- CABECERA -->
-        <header>
-            <span class="badge">ENVIRONMENT: TESTING & DEVELOPMENT</span>
-            <h1>Flux Mobile Vault</h1>
-            <p class="subtitle">iOS Native Offline-First Personal Finance System con arquitectura criptográfica avanzada.</p>
-        </header>
+<div class="app">
 
-        <!-- SECCIÓN: ARQUITECTURA -->
-        <section>
-            <h2>Pilares de la Arquitectura</h2>
-            <div class="grid">
-                <div class="card">
-                    <h3>💾 Single Source of Truth</h3>
-                    <p>La base de datos local (Core Data) gestiona el estado transaccional de forma síncrona en el hilo de persistencia. La red se maneja de forma asíncrona como un espejo opcional.</p>
-                </div>
-                <div class="card">
-                    <h3>🔐 Cifrado AES-256-GCM</h3>
-                    <p>Campos de texto libre e información confidencial de las transacciones se cifran mediante CryptoKit antes de consolidarse en el almacenamiento físico local.</p>
-                </div>
-                <div class="card">
-                    <h3>⚡ Secure Enclave</h3>
-                    <p>Las llaves de cifrado se generan de forma única en hardware dedicado y se custodian en Keychain Services bajo la política estricta de acceso post-primer desbloqueo.</p>
-                </div>
-                <div class="card">
-                    <h3>🆔 Biometría Obligatoria</h3>
-                    <p>El acceso al contenedor está blindado mediante LocalAuthentication (Face ID / Touch ID) con un fallback algorítmico a PIN numérico local de 4 dígitos.</p>
-                </div>
-            </div>
-        </section>
+  <header class="topbar">
 
-        <!-- SECCIÓN: STACK -->
-        <section>
-            <h2>Stack Tecnológico</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Componente</th>
-                        <th>Tecnología Nativa</th>
-                        <th>Propósito Arquitectónico</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>UI Framework</strong></td>
-                        <td>SwiftUI</td>
-                        <td>Diseño declarativo e interfaces de alta fidelidad optimizadas para modo oscuro nativo.</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Local Engine</strong></td>
-                        <td>Core Data</td>
-                        <td>Modelado de datos por código estructurado y persistencia relacional local de alto rendimiento.</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Security Hardware</strong></td>
-                        <td>Secure Enclave / CryptoKit</td>
-                        <td>Cifrado simétrico en reposo a nivel de celda de datos y aislamiento criptográfico.</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Remote Cloud</strong></td>
-                        <td>Firebase Firestore</td>
-                        <td>Sincronización incremental pasiva mediante deltas temporales y almacenamiento en la nube.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+    <h1>Flux</h1>
 
-        <!-- SECCIÓN: SINCRONIZACIÓN -->
-        <section>
-            <h2>Motor de Sincronización Delta Incremental</h2>
-            <p style="color: var(--text-secondary);">La aplicación realiza un seguimiento del estado de mutación de los datos locales a través de la propiedad de control <code>SyncStatus</code> (<code>synced</code> | <code>pendingUpload</code>).</p>
-            
-            <div class="highlight-box">
-                <p><strong>Privacidad del Servidor:</strong> Al recuperar la conectividad de red, un despachador asíncrono barre los registros pendientes. Las notas y conceptos descriptivos viajan cifrados; el servidor en la nube es completamente ciego a los hábitos de consumo específicos del usuario.</p>
-            </div>
-        </section>
+    <button id="addBtn">+</button>
 
-        <!-- SECCIÓN INTERACTIVA: SANDBOX DE PRUEBAS REMOTAS -->
-        <section class="sandbox-panel">
-            <h2 style="margin-bottom: 0.5rem; display: inline-block;">Sandbox de Integración Live</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">Entorno de depuración web. Presiona el botón inferior para inyectar de forma directa un registro estructurado dentro de tu colección activa de Firestore.</p>
-            
-            <button id="btn-test-firebase" class="btn-primary">
-                🚀 Ejecutar Ping e Insertar Gasto de Prueba
-            </button>
-            <p id="status-message"></p>
-        </section>
+  </header>
 
-        <!-- PIE DE PÁGINA -->
-        <footer>
-            <p>Diseñado bajo principios de Privacidad por Diseño (Privacy by Design) • FluxApp Core</p>
-        </footer>
+  <section class="balance-card">
+
+    <p>Balance Total</p>
+
+    <h2 id="balance">$0</h2>
+
+  </section>
+
+  <section class="stats-grid">
+
+    <div class="card">
+
+      <p>Ingresos</p>
+
+      <h3 id="income">$0</h3>
+
     </div>
 
-    <!-- MÓDULO JS: CONFIGURACIÓN INTEGRAL DE FIREBASE -->
-    <script type="module">
-        // Importación de módulos core desde CDN oficial de Firebase v10
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <div class="card">
 
-        // Configuración de infraestructura provista por el desarrollador
-        const firebaseConfig = {
-            apiKey: "AIzaSyAX2DYw3f5ASIfMT8SJ0F-FTHioHrZd-V4",
-            authDomain: "gastos-b526f.firebaseapp.com",
-            projectId: "gastos-b526f",
-            storageBucket: "gastos-b526f.firebasestorage.app",
-            messagingSenderId: "181887892967",
-            appId: "1:181887892967:web:6487fa2dbbfd4c9317d142",
-            measurementId: "G-YE6EPBPCYV"
-        };
+      <p>Gastos</p>
 
-        // Inicialización de instancias del SDK
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+      <h3 id="expenses">$0</h3>
 
-        // Vinculación con elementos de la interfaz de usuario
-        const testButton = document.getElementById('btn-test-firebase');
-        const statusMessage = document.getElementById('status-message');
+    </div>
 
-        // Escuchador de eventos de mutación
-        testButton.addEventListener('click', async () => {
-            statusMessage.innerText = "Estableciendo conexión y transmitiendo payload...";
-            statusMessage.style.color = "var(--text-secondary)";
-            
-            try {
-                // Inserción asíncrona dentro de la colección 'transactions'
-                const docRef = await addDoc(collection(db, "transactions"), {
-                    concepto: "Gasto Sandbox (Simulación Web)",
-                    monto: 4500,
-                    fecha: new Date().toISOString(),
-                    syncStatus: "synced"
-                });
-                
-                // Respuesta exitosa del backend
-                statusMessage.innerText = `¡Escritura exitosa! Registro creado en Firestore con UID: ${docRef.id}`;
-                statusMessage.style.color = "var(--success)";
-                
-            } catch (error) {
-                // Manejo y captura de excepciones de red o de reglas de seguridad
-                console.error("Fallo en base de datos remota: ", error);
-                statusMessage.innerText = `Fallo de conexión: ${error.message}. Verifica las 'Rules' de tu base de datos Firebase.`;
-                statusMessage.style.color = "var(--error)";
-            }
-        });
-    </script>
+  </section>
+
+  <section class="card">
+
+    <p>Distribución</p>
+
+    <canvas id="chart" height="180"></canvas>
+
+  </section>
+
+  <section class="transactions">
+
+    <h2>Movimientos</h2>
+
+    <div id="transactionsList"></div>
+
+  </section>
+
+</div>
+
+<dialog id="expenseModal">
+
+  <form id="expenseForm">
+
+    <h2>Nuevo Movimiento</h2>
+
+    <input
+      type="text"
+      id="title"
+      placeholder="Título"
+      required
+    />
+
+    <input
+      type="number"
+      id="amount"
+      placeholder="Monto"
+      required
+    />
+
+    <select id="type">
+      <option value="expense">Gasto</option>
+      <option value="income">Ingreso</option>
+    </select>
+
+    <select id="currency">
+      <option>COP</option>
+      <option>USD</option>
+      <option>EUR</option>
+    </select>
+
+    <textarea
+      id="notes"
+      placeholder="Notas"
+    ></textarea>
+
+    <div class="actions">
+
+      <button type="submit">
+        Guardar
+      </button>
+
+      <button
+        type="button"
+        class="secondary"
+        id="cancelBtn"
+      >
+        Cancelar
+      </button>
+
+    </div>
+
+  </form>
+
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const addBtn =
+  document.getElementById('addBtn');
+
+const modal =
+  document.getElementById('expenseModal');
+
+const form =
+  document.getElementById('expenseForm');
+
+const cancelBtn =
+  document.getElementById('cancelBtn');
+
+const transactionsList =
+  document.getElementById('transactionsList');
+
+const balanceEl =
+  document.getElementById('balance');
+
+const incomeEl =
+  document.getElementById('income');
+
+const expensesEl =
+  document.getElementById('expenses');
+
+const chartCanvas =
+  document.getElementById('chart');
+
+let chart;
+
+let transactions =
+  JSON.parse(
+    localStorage.getItem('flux-transactions')
+  ) || [];
+
+addBtn.onclick = () => {
+  modal.showModal();
+};
+
+cancelBtn.onclick = () => {
+  modal.close();
+};
+
+form.onsubmit = (e) => {
+
+  e.preventDefault();
+
+  const transaction = {
+
+    id: crypto.randomUUID(),
+
+    title:
+      document.getElementById('title').value,
+
+    amount: parseFloat(
+      document.getElementById('amount').value
+    ),
+
+    type:
+      document.getElementById('type').value,
+
+    currency:
+      document.getElementById('currency').value,
+
+    notes:
+      document.getElementById('notes').value,
+
+    createdAt: Date.now()
+  };
+
+  transactions.unshift(transaction);
+
+  saveTransactions();
+
+  renderTransactions();
+
+  form.reset();
+
+  modal.close();
+};
+
+function saveTransactions(){
+
+  localStorage.setItem(
+    'flux-transactions',
+    JSON.stringify(transactions)
+  );
+}
+
+function renderTransactions(){
+
+  transactionsList.innerHTML = '';
+
+  let income = 0;
+  let expenses = 0;
+
+  transactions.forEach(tx => {
+
+    if(tx.type === 'income'){
+      income += tx.amount;
+    }else{
+      expenses += tx.amount;
+    }
+
+    const div =
+      document.createElement('div');
+
+    div.className =
+      `transaction ${tx.type}`;
+
+    div.innerHTML = `
+
+      <div>
+
+        <strong>${tx.title}</strong>
+
+        <br>
+
+        <small>
+          ${tx.currency}
+        </small>
+
+      </div>
+
+      <div>
+
+        <h3>
+
+          ${tx.type === 'expense' ? '-' : '+'}
+          $${tx.amount.toLocaleString()}
+
+        </h3>
+
+      </div>
+    `;
+
+    transactionsList.appendChild(div);
+  });
+
+  balanceEl.innerText =
+    '$' + (income - expenses).toLocaleString();
+
+  incomeEl.innerText =
+    '$' + income.toLocaleString();
+
+  expensesEl.innerText =
+    '$' + expenses.toLocaleString();
+
+  renderChart(income, expenses);
+}
+
+function renderChart(income, expenses){
+
+  if(chart){
+    chart.destroy();
+  }
+
+  chart = new Chart(chartCanvas, {
+
+    type:'doughnut',
+
+    data:{
+
+      labels:[
+        'Ingresos',
+        'Gastos'
+      ],
+
+      datasets:[{
+
+        data:[
+          income,
+          expenses
+        ],
+
+        backgroundColor:[
+          '#22c55e',
+          '#ff4d4f'
+        ],
+
+        borderWidth:0
+      }]
+    },
+
+    options:{
+
+      plugins:{
+        legend:{
+          labels:{
+            color:'white'
+          }
+        }
+      }
+    }
+  });
+}
+
+async function authenticate(){
+
+  if(
+    !window.PublicKeyCredential
+  ){
+    return true;
+  }
+
+  try{
+
+    const challenge =
+      crypto.getRandomValues(
+        new Uint8Array(32)
+      );
+
+    await navigator.credentials.get({
+      publicKey:{
+        challenge,
+        timeout:60000,
+        userVerification:'required'
+      }
+    });
+
+    return true;
+
+  }catch(e){
+
+    return confirm(
+      'Autenticación biométrica falló. Continuar?'
+    );
+  }
+}
+
+async function init(){
+
+  const ok =
+    await authenticate();
+
+  if(!ok){
+
+    document.body.innerHTML = `
+      <h1 style="
+        padding:40px;
+        text-align:center;
+      ">
+        Acceso denegado
+      </h1>
+    `;
+
+    return;
+  }
+
+  renderTransactions();
+}
+
+init();
+
+</script>
+
 </body>
 </html>
